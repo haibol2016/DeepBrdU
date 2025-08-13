@@ -1,0 +1,34 @@
+#!/bin/bash
+
+#BSUB -n 8  # minmal numbers of processors required for a parallel job
+#BSUB -R rusage[mem=8000] # ask for memory 5G
+#BSUB -W 24:00 #limit the job to be finished in 12 hours
+#BSUB -J "fastQC[1-4]%50"
+#BSUB -q long  # which queue we want to run in
+#BSUB -o logs/out.%J.%I.txt # log
+#BSUB -e logs/err.%J.%I.txt # error
+#BSUB -R "span[hosts=1]" # All hosts on the same chassis"
+##BSUB -w "done(195835)"
+
+i=$(($LSB_JOBINDEX- 1))
+mkdir -p logs
+
+module load dorado/0.9.1
+module load samtools/1.16.1
+module load minimap2/2.26
+
+in=(`ls data/005.repack.fast5/BTF* -d`)
+name=(`ls data/005.repack.fast5/BTF* -d | perl -p -e 's{.+/(.+)}{$1}'`)
+ids=(`ls docs/${name[$i]}.[ct]*mapq60.read.ids.txt`)
+name2=(`ls docs/${name[$i]}.[ct]*mapq60.read.ids.txt | perl -p -e 's{.+/(.+?).mapq60.read.ids.txt}{$1}'`)
+
+out1=data/006.oriented.fast5/${name[$i]}/${name2[0]}
+mkdir -p $out1
+
+out2=data/006.oriented.fast5/${name[$i]}/${name2[1]}
+mkdir -p $out2
+
+set -euo pipefail 
+
+grep -f ${ids[0]}  -w  <(find ${in[$i]} -name *.fast5)  | xargs -I {} cp {} $out1
+grep -f ${ids[1]}  -w  <(find ${in[$i]} -name *.fast5)  | xargs -I {} cp {} $out2

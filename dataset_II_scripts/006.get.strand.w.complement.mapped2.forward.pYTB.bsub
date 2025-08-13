@@ -1,0 +1,27 @@
+#!/bin/bash
+
+#BSUB -n 1  # minmal numbers of processors required for a parallel job
+#BSUB -R rusage[mem=2000] # ask for memory 5G
+#BSUB -W 4:00 #limit the job to be finished in 12 hours
+#BSUB -J "fastQC[1-8]%50"
+#BSUB -q short   # which queue we want to run in
+#BSUB -o logs/out.%J.%I.txt # log
+#BSUB -e logs/err.%J.%I.txt # error
+#BSUB -R "span[hosts=1]" # All hosts on the same chassis"
+##BSUB -w "done(33544)"
+
+i=$(($LSB_JOBINDEX- 1))
+mkdir -p logs
+
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate nanopore
+
+module load samtools
+
+in=data/008.no.resquiggle.minimap2.out
+bam=(`ls $in/*.sam`)
+name=(`ls $in/*.sam | perl -p -e 's{.+/(.+?).sam}{$1}'`)
+outdir=data/009.no.resquiggle.entry.orientation.out		
+mkdir -p $outdir
+
+samtools view ${bam[$i]}  | awk 'BEGIN{FS=OFS="\t"} $2 == 0 {print $1}' | perl -p -e 's{.+?_I}{I}' > $outdir/${name[$i]}.read.ids.txt

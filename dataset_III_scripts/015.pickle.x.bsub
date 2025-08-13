@@ -1,0 +1,26 @@
+#!/bin/bash
+
+#BSUB -n 8  # minmal numbers of processors required for a parallel job
+#BSUB -R rusage[mem=2000] # ask for memory 5G
+#BSUB -W 4:00 #limit the job to be finished in 12 hours
+#BSUB -J "fastQC[1-2]%50"
+#BSUB -q short   # which queue we want to run in
+#BSUB -o logs/out.%J.%I.txt # log
+#BSUB -e logs/err.%J.%I.txt # error
+#BSUB -R "span[hosts=1]" # All hosts on the same chassis"
+##BSUB -w "done(569244)"
+
+i=$(($LSB_JOBINDEX- 1))
+mkdir -p logs
+
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate nanopore
+
+
+single_fast5=(`ls  test_data/050.requiggle.7mer.features.out/barcode0*  -d`)
+out=(`ls  test_data/050.requiggle.7mer.features.out/barcode0* -d | perl -p -e 's{test_data/050.requiggle.7mer.features.out/(barcode\d+)}{$1}'`)
+outdir=test_data/051.7mer.features.pcikles/${out[$i]} 		
+mkdir -p $outdir
+
+python  scripts/028.pickle.x.py ${single_fast5[$i]}  $outdir
+

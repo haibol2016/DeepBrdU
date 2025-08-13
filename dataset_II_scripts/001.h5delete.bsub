@@ -1,0 +1,22 @@
+#!/bin/sh
+
+#BSUB -n 1  # minmal numbers of processors required for a parallel job
+#BSUB -R rusage[mem=4000] # ask for memory 5G
+#BSUB -W 4:00 #limit the job to be finished in 12 hours
+#BSUB -J "fastQC[1-144]%100"
+#BSUB -q short   # which queue we want to run in
+#BSUB -o logs/out.%J.%I.txt # log
+#BSUB -e logs/err.%J.%I.txt # error
+#BSUB -R "span[hosts=1]" # All hosts on the same chassis"
+
+i=$(($LSB_JOBINDEX- 1))
+mkdir -p logs
+
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate seurat5
+
+
+in=(`ls BT1.brdu.gradient.data/003.single_fast5/BT1_run*/0  -d`)
+fast5=(`ls ${in[$i]}/*.fast5`)
+
+Rscript --vanilla scripts2/001.h5delete.R ${fast5[@]}

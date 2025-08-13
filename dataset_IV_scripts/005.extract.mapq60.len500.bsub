@@ -1,0 +1,22 @@
+#!/bin/bash
+
+#BSUB -n 1  # minmal numbers of processors required for a parallel job
+#BSUB -R rusage[mem=1000] # ask for memory 5G
+#BSUB -W 4:00 #limit the job to be finished in 12 hours
+#BSUB -J "fastQC[1-32]%50"
+#BSUB -q short   # which queue we want to run in
+#BSUB -o logs/out.%J.%I.txt # log
+#BSUB -e logs/err.%J.%I.txt # error
+#BSUB -R "span[hosts=1]" # All hosts on the same chassis"
+##BSUB -w "done(33544)"
+
+i=$(($LSB_JOBINDEX- 1))
+mkdir -p logs
+
+bam60=(`ls data/003.dorado_basecalled/*.sam`)
+name=(`ls data/003.dorado_basecalled/*.sam | perl -p -e 's{.+/(.+?)_dorado.mapq60.sam}{$1}'`)
+save_path=docs/003.quality.reads.fast5
+mkdir -p $save_path
+
+samtools view ${bam60[$i]} |awk 'BEGIN{FS=OFS="\t"} length($10) >=500 {print $1 ".fast5"} ' | sort -u > ${save_path}/${name[$i]}.fast5.list
+

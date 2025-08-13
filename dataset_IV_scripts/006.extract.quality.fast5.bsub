@@ -1,0 +1,20 @@
+#!/bin/bash
+
+#BSUB -n 8  # minmal numbers of processors required for a parallel job
+#BSUB -R rusage[mem=1000] # ask for memory 5G
+#BSUB -W 4:00 #limit the job to be finished in 12 hours
+#BSUB -J "fastQC[1-32]%50"
+#BSUB -q short   # which queue we want to run in
+#BSUB -o logs/out.%J.%I.txt # log
+#BSUB -e logs/err.%J.%I.txt # error
+#BSUB -R "span[hosts=1]" # All hosts on the same chassis"
+##BSUB -w "done(33544)"
+
+i=$(($LSB_JOBINDEX- 1))
+mkdir -p logs
+
+single_fast5=(`ls data/004.single_fast5/* -d`)
+dir=(`ls data/004.single_fast5/* -d | perl -p -e 's{.+/(.+?)}{$1}'`)
+
+
+ls ${single_fast5[$i]}/0/*.fast5 | grep -F -w -v -f docs/003.quality.reads.fast5/${dir[$i]}.fast5.list - | xargs -I {} rm -f {}
