@@ -5,7 +5,7 @@ import pandas as pd
 import pickle
 import sys
 
-kmer_size = 7
+kmer_size = 5
 in_dir = sys.argv[1]
 # in_dir = "."
 out_dir = sys.argv[2]
