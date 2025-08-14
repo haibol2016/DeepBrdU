@@ -6,7 +6,7 @@ import pickle
 import sys
 import gzip
 
-kmer_size = 7
+kmer_size = 5
 in_dir = sys.argv[1]
 # in_dir = "."
 out_dir = sys.argv[2]
